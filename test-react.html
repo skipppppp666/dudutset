@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React测试页面</title>
+    
+    <!-- 引入React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        function TestApp() {
+            const [count, setCount] = React.useState(0);
+            const [message, setMessage] = React.useState('');
+
+            const handleClick = () => {
+                setCount(count + 1);
+                setMessage('按钮被点击了！');
+            };
+
+            return (
+                <div className="container">
+                    <h1>React测试页面</h1>
+                    <p>如果您能看到这个页面，说明React已经正常工作了！</p>
+                    
+                    <div style={{ margin: '20px 0' }}>
+                        <button className="button" onClick={handleClick}>
+                            点击我 (已点击 {count} 次)
+                        </button>
+                    </div>
+                    
+                    {message && (
+                        <div style={{ 
+                            background: '#d4edda', 
+                            color: '#155724', 
+                            padding: '10px', 
+                            borderRadius: '4px',
+                            margin: '10px 0'
+                        }}>
+                            {message}
+                        </div>
+                    )}
+                    
+                    <div style={{ marginTop: '20px' }}>
+                        <h3>数据展示：</h3>
+                        <ul>
+                            <li>销售额: ¥20,063.50</li>
+                            <li>储值卡充值金额: ¥29,189.00</li>
+                            <li>实收金额: ¥35,482.00</li>
+                        </ul>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<TestApp />, document.getElementById('root'));
+    </script>
+</body>
+</html> 

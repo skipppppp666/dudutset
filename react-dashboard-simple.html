@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React仪表板 - 简化版</title>
+    
+    <!-- 引入React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 4fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: white;
+            border-right: 1px solid #e5e5e5;
+            padding: 1rem;
+        }
+
+        .main {
+            padding: 1.5rem;
+            background: #f5f5f5;
+        }
+
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0.25rem 0;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+        .button:hover {
+            background: #0056b3;
+        }
+
+        .button.outline {
+            background: transparent;
+            color: #007bff;
+            border: 1px solid #007bff;
+        }
+
+        .button.ghost {
+            background: transparent;
+            color: #666;
+            border: none;
+        }
+
+        .button.ghost:hover {
+            background: #f0f0f0;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 0.875rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .chart-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .chart-container {
+            height: 200px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .simple-chart {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .pie-chart {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(
+                #0088FE 0deg 120deg,
+                #00C49F 120deg 240deg,
+                #FFBB28 240deg 360deg
+            );
+            position: relative;
+        }
+
+        .pie-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .line-chart {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .line-path {
+            fill: none;
+            stroke: #8884d8;
+            stroke-width: 2;
+        }
+
+        .chart-legend {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .footer {
+            font-size: 0.875rem;
+            color: #666;
+            padding-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const summary = [
+            { title: "销售额", value: 20063.5 },
+            { title: "储值卡充值金额", value: 29189.0 },
+            { title: "实收金额", value: 35482.0 },
+        ];
+
+        const pieData = [
+            { name: "现金支付", value: 153, color: "#0088FE" },
+            { name: "银豹付", value: 6140, color: "#00C49F" },
+            { name: "储值卡支付", value: 13770.5, color: "#FFBB28" },
+        ];
+
+        const lineData = [
+            { date: "周一", value: 5200 },
+            { date: "周二", value: 6900 },
+            { date: "周三", value: 7900 },
+            { date: "周四", value: 9482 },
+        ];
+
+        function SimplePieChart() {
+            return (
+                <div className="simple-chart">
+                    <div className="pie-chart">
+                        <div className="pie-center"></div>
+                    </div>
+                    <div className="chart-legend">
+                        {pieData.map((item, index) => (
+                            <div key={index} className="legend-item">
+                                <div 
+                                    className="legend-color" 
+                                    style={{ backgroundColor: item.color }}
+                                ></div>
+                                <span>{item.name}: {item.value}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function SimpleLineChart() {
+            const maxValue = Math.max(...lineData.map(d => d.value));
+            const minValue = Math.min(...lineData.map(d => d.value));
+            const range = maxValue - minValue;
+            
+            const points = lineData.map((item, index) => {
+                const x = (index / (lineData.length - 1)) * 200 + 20;
+                const y = 180 - ((item.value - minValue) / range) * 140;
+                return `${x},${y}`;
+            }).join(' ');
+
+            return (
+                <div className="simple-chart">
+                    <svg width="100%" height="100%" viewBox="0 0 240 200">
+                        <polyline
+                            points={points}
+                            fill="none"
+                            stroke="#8884d8"
+                            strokeWidth="2"
+                        />
+                        {lineData.map((item, index) => {
+                            const x = (index / (lineData.length - 1)) * 200 + 20;
+                            const y = 180 - ((item.value - minValue) / range) * 140;
+                            return (
+                                <circle
+                                    key={index}
+                                    cx={x}
+                                    cy={y}
+                                    r="4"
+                                    fill="#8884d8"
+                                />
+                            );
+                        })}
+                    </svg>
+                    <div className="chart-legend">
+                        {lineData.map((item, index) => (
+                            <div key={index} className="legend-item">
+                                <span>{item.date}: ¥{item.value}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function Dashboard() {
+            const handleUpload = () => {
+                alert('上传数据功能');
+            };
+
+            const handleTemplate = () => {
+                alert('选择报告模板功能');
+            };
+
+            const handleTimeRange = () => {
+                alert('选择时间范围功能');
+            };
+
+            const handleDownload = () => {
+                alert('下载PDF功能');
+            };
+
+            return (
+                <div className="grid">
+                    <aside className="sidebar">
+                        <div style={{ marginBottom: '1rem' }}>
+                            <button className="button outline" onClick={handleUpload}>
+                                上传数据
+                            </button>
+                        </div>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <button className="button ghost" onClick={handleTemplate}>
+                                选择报告模板
+                            </button>
+                        </div>
+                        <div>
+                            <button className="button ghost" onClick={handleTimeRange}>
+                                选择时间范围
+                            </button>
+                        </div>
+                    </aside>
+
+                    <main className="main">
+                        <div className="header">
+                            <h1 className="title">营业概况报告</h1>
+                            <button className="button" onClick={handleDownload}>
+                                下载 PDF
+                            </button>
+                        </div>
+
+                        <div className="summary-grid">
+                            {summary.map((item) => (
+                                <div className="card" key={item.title}>
+                                    <div className="card-title">{item.title}</div>
+                                    <div className="card-value">
+                                        ¥{item.value.toLocaleString()}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="charts-grid">
+                            <div className="chart-card">
+                                <div className="chart-title">销售结构</div>
+                                <div className="chart-container">
+                                    <SimplePieChart />
+                                </div>
+                            </div>
+
+                            <div className="chart-card">
+                                <div className="chart-title">实收金额趋势</div>
+                                <div className="chart-container">
+                                    <SimpleLineChart />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="footer">
+                            销售额表现尚可，储值卡的充值额较高，建议推动更多储值卡的销售。
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<Dashboard />, document.getElementById('root'));
+    </script>
+</body>
+</html> 
